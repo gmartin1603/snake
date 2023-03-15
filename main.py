@@ -106,9 +106,30 @@ def check_collisions(snake):
 
     return False
 
+def play_again():
+    canvas.delete(ALL)
+    global score
+    score = 0
+    label.config(text="Score: " + str(score))
+
+    reset_button.place_forget()
+
+    global direction
+    direction = "down"
+
+    global snake
+    snake = Snake()
+    global food
+    food = Food()
+
+    next_turn(snake, food)
+
+
 def game_over():
-    # canvas.delete(ALL)
-    canvas.create_text(canvas.winfo_width() / 2, canvas.winfo_height() / 2, text="Game Over!", font=("Arial", 20), fill="red")
+    canvas.delete(ALL)
+    canvas.create_text(canvas.winfo_width() / 2, canvas.winfo_height() / 2, text="Game Over!", font=("Arial", 20), fill="red", tag="game_over")
+    canvas.create_text(canvas.winfo_width() / 2, canvas.winfo_height() / 2 + 20, text="Your score is: " + str(score), font=("Arial", 20), fill="red", tag="game_over")
+    reset_button.place(x=(canvas.winfo_width() / 2) - 50, y=(canvas.winfo_height() / 2) + 100)
 
 #********** Create window **********
 window = Tk()
@@ -143,6 +164,9 @@ window.bind("<Up>", lambda event: change_direction("up"))
 window.bind("<Down>", lambda event: change_direction("down"))
 window.bind("<Left>", lambda event: change_direction("left"))
 window.bind("<Right>", lambda event: change_direction("right"))
+
+
+reset_button = Button(window, text="Play again?", font=("Arial", 20), command=play_again, bg="green", fg="white", width=10, height=1)
 
 snake = Snake()
 food = Food()
