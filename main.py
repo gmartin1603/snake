@@ -4,7 +4,7 @@ import random
 GAME_WIDTH = 700
 GAME_HEIGHT = 700
 SPEED = 90
-SPACE_SIZE = 50
+SPACE_SIZE = 20
 BODY_PARTS = 3
 SNAKE_COLOR = "green"
 FOOD_COLOR = "red"
@@ -45,19 +45,38 @@ def next_turn(snake, food):
     elif direction == "right":
         x += SPACE_SIZE
 
+    # Add next square
     snake.position.insert(0, (x, y))
-
     square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=SNAKE_COLOR, tag="snake")
-
     snake.squares.insert(0, square)
 
-    del snake.position[-1]
+    # Check food collision
+    if x == food.position[0] and y == food.position[1]:
+        global score
+        score += 1
+        label.config(text="Score: " + str(score))
 
-    canvas.delete(snake.squares[-1])
+        canvas.delete("food")
+        food = Food()
 
-    del snake.squares[-1]
+        # Add new square
+        x, y = snake.position[-1]
+        snake.position.append((x, y))
+        square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=SNAKE_COLOR, tag="snake")
+        snake.squares.append(square)
+    else:
+        # Remove last square
+        del snake.position[-1]
+        canvas.delete(snake.squares[-1])
+        del snake.squares[-1]
 
-    window.after(SPEED, next_turn, snake, food)
+    # Check collisions
+    if (check_collisions(snake)):
+        game_over()
+
+    else:
+        window.after(SPEED, next_turn, snake, food)
+
 
 def change_direction(new_direction):
     global direction
@@ -71,12 +90,27 @@ def change_direction(new_direction):
     elif new_direction == "right" and direction != "left":
         direction = new_direction
 
-def check_collisions(snake, food):
-    pass
+def check_collisions(snake):
+    x, y = snake.position[0]
+
+    if x < 0 or x > GAME_WIDTH - SPACE_SIZE:
+        print("Game over!")
+        return True
+    elif y < 0 or y > GAME_HEIGHT - SPACE_SIZE:
+        print("Game over!")
+        return True
+
+    for body_part in snake.position[1:]:
+        if x == body_part[0] and y == body_part[1]:
+            return True
+
+    return False
 
 def game_over():
-    pass
+    # canvas.delete(ALL)
+    canvas.create_text(canvas.winfo_width() / 2, canvas.winfo_height() / 2, text="Game Over!", font=("Arial", 20), fill="red")
 
+#********** Create window **********
 window = Tk()
 window.title("Snake Game")
 window.resizable(False, False)
@@ -89,9 +123,10 @@ label.pack()
 
 canvas = Canvas(window, width=GAME_WIDTH, height=GAME_HEIGHT, bg=BG_COLOR)
 canvas.pack()
+#***********************************
 
+#********** Center window **********
 window.update()
-
 window_width = canvas.winfo_width()
 window_height = canvas.winfo_height()
 screen_width = window.winfo_screenwidth()
@@ -101,6 +136,7 @@ x = int((screen_width / 2) - (window_width / 2))
 y = int((screen_height / 2) - (window_height / 2))
 
 window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+#***********************************
 
 # Game controls
 window.bind("<Up>", lambda event: change_direction("up"))
